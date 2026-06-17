@@ -1,0 +1,124 @@
+{
+    "parameters": {
+        "B_d": 0.02,
+        "C_bl": 500.0,
+        "C_br": 200.0,
+        "C_g": 300.0,
+        "eff_c": 0.95,
+        "eff_d": 0.95,
+        "S_init": 250.0,
+        "S_min": 50.0
+    },
+    "tou_prices": {
+        "Off-Peak": 0.12,
+        "Mid-Peak": 0.22,
+        "Peak": 0.36
+    },
+    "tou_schedule": [
+        {
+            "Period": "Off-Peak",
+            "Start": "00:00",
+            "End": "07:00"
+        },
+        {
+            "Period": "Mid-Peak",
+            "Start": "07:00",
+            "End": "12:00"
+        },
+        {
+            "Period": "Off-Peak",
+            "Start": "12:00",
+            "End": "16:00"
+        },
+        {
+            "Period": "Peak",
+            "Start": "16:00",
+            "End": "22:00"
+        },
+        {
+            "Period": "Mid-Peak",
+            "Start": "22:00",
+            "End": "24:00"
+        }
+    ],
+    "export_percentage": 50.0,
+    "tariff_scenarios": {
+        "Sri Lanka TOU (Default)": {
+            "tou_prices": {
+                "Off-Peak": 0.12,
+                "Mid-Peak": 0.22,
+                "Peak": 0.36
+            },
+            "tou_schedule": [
+                {
+                    "Period": "Off-Peak",
+                    "Start": "00:00",
+                    "End": "07:00"
+                },
+                {
+                    "Period": "Mid-Peak",
+                    "Start": "07:00",
+                    "End": "12:00"
+                },
+                {
+                    "Period": "Off-Peak",
+                    "Start": "12:00",
+                    "End": "16:00"
+                },
+                {
+                    "Period": "Peak",
+                    "Start": "16:00",
+                    "End": "22:00"
+                },
+                {
+                    "Period": "Mid-Peak",
+                    "Start": "22:00",
+                    "End": "24:00"
+                }
+            ]
+        },
+        "Flat Tariff": {
+            "tou_prices": {
+                "Off-Peak": 0.2,
+                "Mid-Peak": 0.2,
+                "Peak": 0.2
+            },
+            "tou_schedule": [
+                {
+                    "Period": "Off-Peak",
+                    "Start": "00:00",
+                    "End": "24:00"
+                }
+            ]
+        },
+        "High Peak Pricing": {
+            "tou_prices": {
+                "Off-Peak": 0.1,
+                "Mid-Peak": 0.25,
+                "Peak": 0.6
+            },
+            "tou_schedule": [
+                {
+                    "Period": "Off-Peak",
+                    "Start": "00:00",
+                    "End": "08:00"
+                },
+                {
+                    "Period": "Mid-Peak",
+                    "Start": "08:00",
+                    "End": "16:00"
+                },
+                {
+                    "Period": "Peak",
+                    "Start": "16:00",
+                    "End": "21:00"
+                },
+                {
+                    "Period": "Off-Peak",
+                    "Start": "21:00",
+                    "End": "24:00"
+                }
+            ]
+        }
+    }
+}

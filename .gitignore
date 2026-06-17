@@ -1,0 +1,20 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# Generated outputs
+optimization/outputs/*.csv
+optimization/outputs/*.json
+realtime_data/outputs/*.csv
+energy_forecasting/outputs/*.csv
+energy_forecasting/outputs/*.png
