@@ -73,6 +73,29 @@ def generate_demand_forecast(
         }
         
     except Exception as e:
+        import traceback
         print(f"Error during demand forecasting: {e}")
-        zeros = np.zeros(24)
-        return {"dataframe": pd.DataFrame({"demand_forecast_kw": zeros}), "array": zeros, "list": zeros.tolist()}
+        traceback.print_exc()
+        print("Prophet model failed. Generating naive persistence fallback forecast (last 24 hours of available data)...")
+        try:
+            df_hist = pd.read_csv(historical_csv_path)
+            fallback_demand = df_hist['demand_kw'].tail(24).to_numpy()
+            if len(fallback_demand) < 24:
+                fallback_demand = np.pad(fallback_demand, (0, 24 - len(fallback_demand)), mode='edge')
+            
+            naive_start = forecast_start_time.tz_localize(None) if forecast_start_time.tzinfo else forecast_start_time
+            future_dates = pd.date_range(start=naive_start, periods=24, freq='h')
+            
+            result_df = pd.DataFrame({
+                'timestamp': future_dates,
+                'demand_forecast_kw': fallback_demand
+            })
+            return {
+                "dataframe": result_df,
+                "array": fallback_demand,
+                "list": fallback_demand.tolist()
+            }
+        except Exception as fallback_e:
+            print(f"Fallback generation also failed: {fallback_e}")
+            zeros = np.zeros(24)
+            return {"dataframe": pd.DataFrame({"demand_forecast_kw": zeros}), "array": zeros, "list": zeros.tolist()}

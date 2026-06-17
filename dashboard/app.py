@@ -283,7 +283,9 @@ elif page == "2. Forecast vs Actual Analysis":
     with col1:
         st.subheader("PV Analysis")
         if not has_actual_pv:
-            st.warning("⚠️ No overlap between Actual PV data and current Forecast timestamps. Displaying Forecast only.")
+            forecast_range = f"{df.index.min().strftime('%Y-%m-%d %H:%M')} to {df.index.max().strftime('%Y-%m-%d %H:%M')}"
+            actual_range = f"{act_pv_df.index.min().strftime('%Y-%m-%d %H:%M')} to {act_pv_df.index.max().strftime('%Y-%m-%d %H:%M')}" if act_pv_df is not None and not act_pv_df.empty else "N/A"
+            st.warning(f"⚠️ **Date Mismatch Detected:** Actual data corresponds to a different date than the current forecast horizon. Forecast-only view displayed.\n\n**Forecast Horizon:** {forecast_range}\n**Actual PV Data:** {actual_range}")
         fig_pv = go.Figure()
         fig_pv.add_trace(go.Scatter(x=df.index, y=df['Solar_Forecast_kW'], name='Forecast PV', line=dict(dash='dash', color='orange')))
         if has_actual_pv:
@@ -300,7 +302,9 @@ elif page == "2. Forecast vs Actual Analysis":
     with col2:
         st.subheader("Load Analysis")
         if not has_actual_load:
-            st.warning("⚠️ No overlap between Actual Load data and current Forecast timestamps. Displaying Forecast only.")
+            forecast_range = f"{df.index.min().strftime('%Y-%m-%d %H:%M')} to {df.index.max().strftime('%Y-%m-%d %H:%M')}"
+            actual_range = f"{act_load_df.index.min().strftime('%Y-%m-%d %H:%M')} to {act_load_df.index.max().strftime('%Y-%m-%d %H:%M')}" if act_load_df is not None and not act_load_df.empty else "N/A"
+            st.warning(f"⚠️ **Date Mismatch Detected:** Actual data corresponds to a different date than the current forecast horizon. Forecast-only view displayed.\n\n**Forecast Horizon:** {forecast_range}\n**Actual Load Data:** {actual_range}")
         fig_load = go.Figure()
         fig_load.add_trace(go.Scatter(x=df.index, y=df['Demand_Forecast_kW'], name='Forecast Load', line=dict(dash='dash', color='red')))
         if has_actual_load:
