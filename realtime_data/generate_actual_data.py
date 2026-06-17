@@ -5,7 +5,7 @@ import os
 def generate_actuals(forecast_path, outputs_dir):
     if not os.path.exists(forecast_path):
         print(f"Warning: Forecast file not found at {forecast_path}. Generating dummy data.")
-        timestamps = [f"Hour_{i}" for i in range(1, 25)]
+        timestamps = pd.date_range(start=pd.Timestamp.now().floor('h'), periods=24, freq='h')
         forecast_pv = np.array([0]*6 + [10, 40, 80, 150, 220, 270, 300, 310, 290, 250, 200, 130, 60] + [0]*5)
         forecast_load = np.array([120]*24)
     else:
