@@ -14,6 +14,13 @@ def run_optimization_pipeline():
     outputs_dir = os.path.dirname(paths["day_ahead_schedule"])
     os.makedirs(outputs_dir, exist_ok=True)
     
+    if not os.path.exists(paths["energy_forecast"]):
+        print("Forecast data not found. Running forecasting pipeline...")
+        # Automatically generate missing forecast data
+        import subprocess
+        forecasting_script = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'energy_forecasting', 'main.py'))
+        subprocess.run([sys.executable, forecasting_script], check=True)
+        
     try:
         df = pd.read_csv(paths["energy_forecast"])
         pv_col = 'pv_forecast_kw' if 'pv_forecast_kw' in df.columns else df.columns[1]

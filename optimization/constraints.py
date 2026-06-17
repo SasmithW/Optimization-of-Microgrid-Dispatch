@@ -22,7 +22,7 @@ def add_constraints(prob, Qs, Qb, Qsb, Qg, Qge, S, yb, ysb, yg_i, yg_e,
         prob += (yg_i[t] + yg_e[t] <= 1, f"Grid_Logic_{t}")
         # 8. SOC Dynamics
         if t == 0:
-            prob += (S[t] == S_init + eff_c * Qsb[t] - Qb[t] / eff_d, f"SOC_Update_{t}")
+            prob += (S[t] == S_init + eff_c * Qsb[t] - (1.0 / eff_d) * Qb[t], f"SOC_Update_{t}")
         else:
-            prob += (S[t] == S[t-1] + eff_c * Qsb[t] - Qb[t] / eff_d, f"SOC_Update_{t}")
+            prob += (S[t] == S[t-1] + eff_c * Qsb[t] - (1.0 / eff_d) * Qb[t], f"SOC_Update_{t}")
     return prob
