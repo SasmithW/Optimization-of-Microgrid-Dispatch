@@ -11,10 +11,9 @@ def main():
     print(" REAL-TIME / ACTUAL DATA MODULE")
     print("========================================")
     
-    config = load_config()
     paths = get_data_paths()
     
-    outputs_dir = config["realtime_outputs_dir"]
+    outputs_dir = os.path.dirname(paths["actual_pv"])
     os.makedirs(outputs_dir, exist_ok=True)
     
     generate_actuals(paths["energy_forecast"], outputs_dir)
