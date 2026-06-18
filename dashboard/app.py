@@ -65,6 +65,24 @@ def load_data():
 data = load_data()
 
 st.sidebar.title("Microgrid Dashboard")
+with st.sidebar.expander("🛠️ Temp Debug Panel", expanded=True):
+    st.write("1. **Forecast CSV Exists?**", os.path.exists(paths.get("energy_forecast", "")))
+    st.write("2. **Actual PV CSV Exists?**", os.path.exists(paths.get("actual_pv", "")))
+    
+    if data.get("schedule") is not None and not data["schedule"].empty:
+        df_sched_dbg = data["schedule"]
+        st.write("**Forecast PV First 5 Timestamps:**")
+        st.write(df_sched_dbg.index[:5].tolist())
+        st.write(f"Forecast Min: {df_sched_dbg.index.min()}")
+        st.write(f"Forecast Max: {df_sched_dbg.index.max()}")
+        
+    if data.get("actual_pv") is not None and not data["actual_pv"].empty:
+        df_act_dbg = data["actual_pv"]
+        st.write("**Actual PV First 5 Timestamps:**")
+        st.write(df_act_dbg.index[:5].tolist())
+        st.write(f"Actual Min: {df_act_dbg.index.min()}")
+        st.write(f"Actual Max: {df_act_dbg.index.max()}")
+
 page = st.sidebar.radio("Navigation", [
     "1. Main Overview", 
     "2. Forecast vs Actual Analysis", 
