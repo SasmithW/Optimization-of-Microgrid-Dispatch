@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 # Import custom modules
 from weather.open_meteo import fetch_weather_forecast
@@ -34,7 +35,7 @@ def generate_sample_historical_data(filepath: str):
     df.to_csv(filepath, index=False)
     print(f"Sample data created at {filepath}")
 
-def main():
+def main(target_date=None):
     # --- CONFIGURATION ---
     # Location (Default: Example Microgrid in a small town - arbitrary coordinates)
     # Using slightly sunny coordinates (e.g., somewhere in Spain/Italy) to show good PV curve
@@ -59,7 +60,7 @@ def main():
     
     # 2. Fetch Weather Data
     print(f"\nFetching weather data for Lat: {LATITUDE}, Lon: {LONGITUDE}...")
-    weather_df = fetch_weather_forecast(lat=LATITUDE, lon=LONGITUDE)
+    weather_df = fetch_weather_forecast(lat=LATITUDE, lon=LONGITUDE, start_date=target_date)
     
     if weather_df.empty:
         print("Failed to fetch weather data. Exiting.")
@@ -174,4 +175,7 @@ def main():
     print(f"Saved plot to {plot_path}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Energy Forecasting Pipeline")
+    parser.add_argument("--date", type=str, default=None, help="Target simulation date in YYYY-MM-DD format (Historical)")
+    args = parser.parse_args()
+    main(target_date=args.date)

@@ -7,19 +7,35 @@ from config_loader import load_config, get_data_paths, get_parameters, get_tarif
 from optimizer import run_day_ahead_optimization
 from rule_based import run_rule_based
 
-def run_optimization_pipeline():
+import argparse
+
+def run_optimization_pipeline(target_date=None):
     paths = get_data_paths()
     params = get_parameters()
     
     outputs_dir = os.path.dirname(paths["day_ahead_schedule"])
     os.makedirs(outputs_dir, exist_ok=True)
     
-    if not os.path.exists(paths["energy_forecast"]):
-        print("Forecast data not found. Running forecasting pipeline...")
-        # Automatically generate missing forecast data
+    # If target_date is provided, or forecast is missing, force run forecasting pipeline
+    if target_date or not os.path.exists(paths["energy_forecast"]):
+        print("Running forecasting pipeline...")
         import subprocess
-        forecasting_script = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'energy_forecasting', 'main.py'))
-        subprocess.run([sys.executable, forecasting_script], check=True)
+        forecasting_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'energy_forecasting'))
+        forecasting_script = os.path.join(forecasting_dir, 'main.py')
+        
+        # Determine correct python executable (local venv vs cloud global)
+        python_exe = sys.executable
+        win_venv = os.path.join(forecasting_dir, 'venv', 'Scripts', 'python.exe')
+        lin_venv = os.path.join(forecasting_dir, 'venv', 'bin', 'python')
+        if os.path.exists(win_venv):
+            python_exe = win_venv
+        elif os.path.exists(lin_venv):
+            python_exe = lin_venv
+            
+        cmd = [python_exe, forecasting_script]
+        if target_date:
+            cmd.extend(["--date", target_date])
+        subprocess.run(cmd, check=True)
         
     try:
         df = pd.read_csv(paths["energy_forecast"])
@@ -96,9 +112,29 @@ def run_optimization_pipeline():
         print(f"Optimization Cost: ${results_opt['cost']:.2f}")
         print(f"Rule-Based Cost: ${results_rule['cost']:.2f}")
         
+        # Regenerate simulated actual data to perfectly match the new forecast date
+        import subprocess
+        realtime_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'realtime_data'))
+        realtime_script = os.path.join(realtime_dir, 'main.py')
+        
+        rt_python_exe = sys.executable
+        rt_win_venv = os.path.join(realtime_dir, 'venv', 'Scripts', 'python.exe')
+        rt_lin_venv = os.path.join(realtime_dir, 'venv', 'bin', 'python')
+        if os.path.exists(rt_win_venv):
+            rt_python_exe = rt_win_venv
+        elif os.path.exists(rt_lin_venv):
+            rt_python_exe = rt_lin_venv
+            
+        if os.path.exists(realtime_script):
+            print("Regenerating simulated actual operational data...")
+            subprocess.run([rt_python_exe, realtime_script], check=True)
+        
         return True, results_opt['cost']
     else:
         return False, results_opt['status']
 
 if __name__ == "__main__":
-    run_optimization_pipeline()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", type=str, default=None, help="Target simulation date in YYYY-MM-DD")
+    args = parser.parse_args()
+    run_optimization_pipeline(target_date=args.date)

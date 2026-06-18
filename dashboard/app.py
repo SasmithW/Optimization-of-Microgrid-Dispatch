@@ -84,6 +84,12 @@ if page == "5. System Parameters & Settings":
     config = load_config()
     params = config.get("parameters", {})
     
+    import datetime
+    st.subheader("Historical Date Simulation")
+    st.markdown("Select a past date to fetch historical weather, generate forecasts, and run the optimization for that specific day.")
+    sim_date = st.date_input("Select Historical Simulation Date", value=datetime.date.today() - datetime.timedelta(days=1))
+    st.markdown("---")
+    
     st.subheader("Microgrid Physical Limits")
     col1, col2 = st.columns(2)
     with col1:
@@ -218,10 +224,12 @@ if page == "5. System Parameters & Settings":
         save_config(config)
         st.success("Configuration saved successfully!")
         
-        with st.spinner("Re-running Optimization Model & Rule-Based EMS..."):
+        with st.spinner(f"Re-running Optimization Model & Forecasting for {sim_date}..."):
             sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'optimization')))
             import main as opt_main
-            success, msg = opt_main.run_optimization_pipeline()
+            import importlib
+            importlib.reload(opt_main)
+            success, msg = opt_main.run_optimization_pipeline(target_date=str(sim_date))
             if success:
                 st.success(f"Pipelines complete! New Optimal Cost: ${msg:.2f}. Please refresh the page.")
             else:

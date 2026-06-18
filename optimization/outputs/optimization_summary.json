@@ -1,0 +1,15 @@
+{
+    "solver": {
+        "variables": 240,
+        "constraints": 264,
+        "solver_used": "CBC_CMD (PuLP Default)",
+        "horizon": 24
+    },
+    "binding_constraints": {
+        "Grid_Import_Limit": false,
+        "Grid_Export_Limit": false,
+        "Battery_Discharge_Limit": false,
+        "Battery_Charge_Limit": false,
+        "SOC_Max_Limit": true
+    }
+}
