@@ -271,7 +271,7 @@ df['Solar_to_Load'] = df['Solar_Used_kW']
 df['Bat_to_Load'] = df['Bat_Discharge_kW']
 df['Grid_to_Load'] = df['Grid_Import_kW']
 
-G_b, G_s = get_tariff_vectors()
+G_b, G_s = get_tariff_vectors(timestamps=df.index)
 params = get_parameters()
 B_d = params.get('B_d', 0.02)
 df['Hourly_Cost_$'] = (df['Grid_Import_kW'] * G_b) - (df['Grid_Export_kW'] * G_s) + B_d * (df['Bat_Charge_kW'] + df['Bat_Discharge_kW'])
@@ -616,7 +616,7 @@ elif page == "9. Optimization vs Rule-Based Comparison":
     opt_pv_to_bat = df_opt['Bat_Charge_kW'].sum() if 'Solar_to_Bat' not in df_opt.columns else df_opt['Solar_to_Bat'].sum()
     
     # Wait, the rule based doesn't have Hourly_Cost_$ precalculated in the dataframe. Let's recalculate it cleanly.
-    G_b, G_s = get_tariff_vectors()
+    G_b, G_s = get_tariff_vectors(timestamps=df_opt.index)
     params = get_parameters()
     B_d = params.get('B_d', 0.02)
     
@@ -707,8 +707,8 @@ elif page == "9. Optimization vs Rule-Based Comparison":
         fsoc = df['Scheduled_SOC_kWh'].iloc[-1]
         
         # Peak Hour Grid Import (Assumed peak is hours 16-21, i.e., index 16 to 21 based on tariffs G_b)
-        peak_mask = [G_b[i] >= 0.15 for i in range(24)]
-        peak_imp = sum([df['Grid_Import_kW'].iloc[i] for i in range(24) if peak_mask[i]])
+        peak_mask = [G_b[i] >= 0.15 for i in range(len(df))]
+        peak_imp = sum([df['Grid_Import_kW'].iloc[i] for i in range(len(df)) if peak_mask[i]])
         
         # Unmet Demand (Should be 0 due to Grid import covering it)
         # Check power balance: Qs + Qb + Qg = D + Qsb + Qge -> If Qg + Qb + Qs < D, unmet > 0

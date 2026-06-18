@@ -50,8 +50,9 @@ def run_optimization_pipeline(target_date=None):
         D_forecast = [120]*24
         S_av_forecast = [0]*6 + [10, 40, 80, 150, 220, 270, 300, 310, 290, 250, 200, 130, 60] + [0]*5
         timestamps = [f"Hour_{i}" for i in range(1, 25)]
-
-    G_b, G_s = get_tariff_vectors()
+    
+    # Generate dynamically mapped tariffs using the timestamps parsed in the try/except block
+    G_b, G_s = get_tariff_vectors(timestamps=timestamps)
     
     # 1. Run MILP Optimization
     results_opt = run_day_ahead_optimization(D_forecast, S_av_forecast, G_b, G_s, params)

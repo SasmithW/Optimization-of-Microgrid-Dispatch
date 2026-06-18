@@ -40,7 +40,8 @@ def get_data_paths():
 def get_parameters():
     return load_config().get("parameters", {})
 
-def get_tariff_vectors(prices=None, schedule=None, exp_pct=None):
+def get_tariff_vectors(prices=None, schedule=None, exp_pct=None, timestamps=None):
+    import pandas as pd
     config = load_config()
     if prices is None: prices = config.get("tou_prices", {"Off-Peak": 0.12, "Mid-Peak": 0.22, "Peak": 0.36})
     if schedule is None: schedule = config.get("tou_schedule", [
@@ -53,7 +54,8 @@ def get_tariff_vectors(prices=None, schedule=None, exp_pct=None):
     if exp_pct is None: exp_pct = float(config.get("export_percentage", 50.0)) / 100.0
     else: exp_pct = float(exp_pct) / 100.0
     
-    G_b = [0.0]*24
+    # Pre-map hour to price
+    hour_to_price = [0.0]*24
     for entry in schedule:
         try:
             start = int(entry["Start"].split(":")[0])
@@ -61,9 +63,21 @@ def get_tariff_vectors(prices=None, schedule=None, exp_pct=None):
             period = entry["Period"]
             for h in range(start, end):
                 if 0 <= h < 24:
-                    G_b[h] = prices[period]
+                    hour_to_price[h] = prices[period]
         except Exception:
             pass
+
+    if timestamps is not None:
+        G_b = []
+        try:
+            for t in timestamps:
+                dt = pd.to_datetime(t)
+                G_b.append(hour_to_price[dt.hour])
+        except Exception:
+            # Fall back to 0-23 array if timestamps are dummy strings like "Hour_1"
+            G_b = hour_to_price
+    else:
+        G_b = hour_to_price
             
     G_s = [val * exp_pct for val in G_b]
     return G_b, G_s

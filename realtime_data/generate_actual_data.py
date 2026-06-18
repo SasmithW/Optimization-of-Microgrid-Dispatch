@@ -13,7 +13,7 @@ def generate_actuals(forecast_path, outputs_dir):
         forecast_load = np.array([120]*24)
     else:
         df = pd.read_csv(forecast_path)
-        timestamps = df['timestamp'] if 'timestamp' in df.columns else df.index
+        timestamps = df['timestamp'].tolist() if 'timestamp' in df.columns else df.iloc[:, 0].tolist()
         # Get the PV and Load columns, handling variations in column names
         pv_col = 'pv_forecast_kw' if 'pv_forecast_kw' in df.columns else df.columns[1]
         load_col = 'demand_forecast_kw' if 'demand_forecast_kw' in df.columns else df.columns[2]
