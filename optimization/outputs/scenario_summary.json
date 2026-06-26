@@ -1,0 +1,10 @@
+{
+    "Scenario Name": "Cloudy Day",
+    "Description": "Simulates heavy cloud cover. PV generation is reduced by the specified factor.",
+    "Applied Parameters": {
+        "PV_FACTOR": 0.5,
+        "LOAD_FACTOR": 1.0,
+        "PEAK_TARIFF_FACTOR": 1.0,
+        "INITIAL_SOC_FACTOR": 1.0
+    }
+}

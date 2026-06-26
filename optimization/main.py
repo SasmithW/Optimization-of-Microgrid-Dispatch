@@ -9,7 +9,7 @@ from rule_based import run_rule_based
 
 import argparse
 
-def run_optimization_pipeline(target_date=None):
+def run_optimization_pipeline(target_date=None, scenario_name="Base Case"):
     paths = get_data_paths()
     params = get_parameters()
     
@@ -54,11 +54,17 @@ def run_optimization_pipeline(target_date=None):
     # Generate dynamically mapped tariffs using the timestamps parsed in the try/except block
     G_b, G_s = get_tariff_vectors(timestamps=timestamps)
     
+    # 0. Apply Scenario Modifications
+    from scenario_generator import apply_scenario
+    D_mod, S_mod, Gb_mod, Gs_mod, params_mod = apply_scenario(
+        D_forecast, S_av_forecast, G_b, G_s, params, scenario_name, timestamps, outputs_dir
+    )
+    
     # 1. Run MILP Optimization
-    results_opt = run_day_ahead_optimization(D_forecast, S_av_forecast, G_b, G_s, params)
+    results_opt = run_day_ahead_optimization(D_mod, S_mod, Gb_mod, Gs_mod, params_mod)
     
     # 2. Run Rule-Based EMS
-    results_rule = run_rule_based(D_forecast, S_av_forecast, G_b, G_s, params)
+    results_rule = run_rule_based(D_mod, S_mod, Gb_mod, Gs_mod, params_mod)
     
     if results_opt['status'] == "Optimal":
         # Calculate Binding Constraints via Arrays
@@ -86,8 +92,8 @@ def run_optimization_pipeline(target_date=None):
 
         df_out_opt = pd.DataFrame({
             "Timestamp": timestamps,
-            "Demand_Forecast_kW": D_forecast,
-            "Solar_Forecast_kW": S_av_forecast,
+            "Demand_Forecast_kW": D_mod,
+            "Solar_Forecast_kW": S_mod,
             "Solar_Used_kW": [qs + qsb + qge for qs, qsb, qge in zip(results_opt['Qs'], results_opt['Qsb'], results_opt['Qge'])],
             "Bat_Charge_kW": results_opt['Qsb'],
             "Bat_Discharge_kW": results_opt['Qb'],
@@ -99,8 +105,8 @@ def run_optimization_pipeline(target_date=None):
         
         df_out_rule = pd.DataFrame({
             "Timestamp": timestamps,
-            "Demand_Forecast_kW": D_forecast,
-            "Solar_Forecast_kW": S_av_forecast,
+            "Demand_Forecast_kW": D_mod,
+            "Solar_Forecast_kW": S_mod,
             "Solar_Used_kW": [qs + qsb + qge for qs, qsb, qge in zip(results_rule['Qs'], results_rule['Qsb'], results_rule['Qge'])],
             "Bat_Charge_kW": results_rule['Qsb'],
             "Bat_Discharge_kW": results_rule['Qb'],
@@ -109,6 +115,14 @@ def run_optimization_pipeline(target_date=None):
             "Scheduled_SOC_kWh": results_rule['S']
         })
         df_out_rule.to_csv(paths["rule_based_schedule"], index=False)
+        
+        # Scenario History Archiving
+        import shutil
+        history_dir = os.path.join(outputs_dir, "scenario_history")
+        os.makedirs(history_dir, exist_ok=True)
+        prefix = scenario_name.replace(" ", "")
+        shutil.copy(paths["day_ahead_schedule"], os.path.join(history_dir, f"{prefix}_day_ahead_schedule.csv"))
+        shutil.copy(paths["rule_based_schedule"], os.path.join(history_dir, f"{prefix}_rule_based_schedule.csv"))
         
         print(f"Optimization Cost: ${results_opt['cost']:.2f}")
         print(f"Rule-Based Cost: ${results_rule['cost']:.2f}")

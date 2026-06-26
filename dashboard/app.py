@@ -1,3 +1,4 @@
+# HELLO! IF YOU SEE THIS, GITHUB HAS SUCCESSFULLY UPDATED.
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -39,6 +40,15 @@ def load_data():
             df_sched['Timestamp'] = pd.to_datetime(df_sched['Timestamp'])
             df_sched.set_index('Timestamp', inplace=True)
         data["schedule"] = df_sched
+        
+    outputs_dir = os.path.dirname(paths["day_ahead_schedule"])
+    summary_path = os.path.join(outputs_dir, "scenario_summary.json")
+    if os.path.exists(summary_path):
+        try:
+            with open(summary_path, 'r') as f:
+                data["scenario_summary"] = json.load(f)
+        except Exception as e:
+            pass
 
     if "rule_based_schedule" in paths and os.path.exists(paths["rule_based_schedule"]):
         df_rule = pd.read_csv(paths["rule_based_schedule"])
@@ -88,6 +98,12 @@ if page == "5. System Parameters & Settings":
     st.subheader("Historical Date Simulation")
     st.markdown("Select a past date to fetch historical weather, generate forecasts, and run the optimization for that specific day.")
     sim_date = st.date_input("Select Historical Simulation Date", value=datetime.date.today() - datetime.timedelta(days=1))
+    st.markdown("---")
+    
+    st.subheader("Data Scenario Simulation")
+    st.markdown("Select an academic scenario to deterministically modify the input forecast data before optimization.")
+    scenario_options = ["Base Case", "Cloudy Day", "Rainy Day", "High Load Day", "Low Load Day", "Peak Demand Event", "High Tariff", "Low Initial SOC"]
+    selected_run_scenario = st.selectbox("Scenario Selection", scenario_options, index=0)
     st.markdown("---")
     
     st.subheader("Microgrid Physical Limits")
@@ -229,7 +245,7 @@ if page == "5. System Parameters & Settings":
             import main as opt_main
             import importlib
             importlib.reload(opt_main)
-            success, msg = opt_main.run_optimization_pipeline(target_date=str(sim_date))
+            success, msg = opt_main.run_optimization_pipeline(target_date=str(sim_date), scenario_name=selected_run_scenario)
             if success:
                 st.success(f"Pipelines complete! New Optimal Cost: ${msg:.2f}. Please refresh the page.")
             else:
@@ -279,6 +295,13 @@ df['Hourly_Cost_$'] = (df['Grid_Import_kW'] * G_b) - (df['Grid_Export_kW'] * G_s
 
 if page == "1. Main Overview":
     st.header("Main Overview")
+    
+    if "scenario_summary" in data:
+        ss = data["scenario_summary"]
+        st.info(f"**Active Scenario: {ss.get('Scenario Name', 'Unknown')}**\n\n{ss.get('Description', '')}")
+        with st.expander("View Scenario Applied Parameters"):
+            st.json(ss.get("Applied Parameters", {}))
+            
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Forecasted PV", f"{df['Solar_Forecast_kW'].sum():,.2f} kWh")
     act_pv_sum = df['Actual_PV_kW'].sum(skipna=True) if has_actual_pv else 0.0
